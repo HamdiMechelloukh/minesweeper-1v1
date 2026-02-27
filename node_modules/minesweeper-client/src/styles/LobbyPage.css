@@ -1,0 +1,77 @@
+.lobby-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #121212;
+  color: #fff;
+}
+
+.lobby-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  width: 400px;
+}
+
+.room-code {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.players-list {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.player-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #333;
+}
+
+.waiting {
+  color: #aaa;
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.btn-start {
+  padding: 0.75rem 1.5rem;
+  background-color: #03dac6;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.btn-start:hover {
+  background-color: #018786;
+}
+
+.btn-exit {
+  padding: 0.5rem 1rem;
+  background-color: #cf6679;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-exit:hover {
+  background-color: #b00020;
+}

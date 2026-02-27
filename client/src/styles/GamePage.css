@@ -1,0 +1,114 @@
+.game-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #121212;
+  color: #fff;
+  padding: 1rem;
+}
+
+.game-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.game-info {
+  display: flex;
+  gap: 2rem;
+  font-size: 1.2rem;
+}
+
+.game-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-grow: 1;
+}
+
+.player-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 45%;
+}
+
+.board-wrapper {
+  margin-top: 1rem;
+}
+
+.separator {
+  align-self: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #03dac6;
+}
+
+.waiting-opponent {
+  color: #aaa;
+  font-style: italic;
+}
+
+.game-result-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.result-box {
+  background-color: #1e1e1e;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.result-box h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.winner {
+  color: #03dac6;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loser {
+  color: #cf6679;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.draw {
+  color: #aaa;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.result-box button {
+  padding: 0.75rem 1.5rem;
+  background-color: #03dac6;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.result-box button:hover {
+  background-color: #018786;
+}

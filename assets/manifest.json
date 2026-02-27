@@ -1,0 +1,15 @@
+{
+  "style": "flat geometric vector",
+  "assets": {
+    "favicon": "assets/favicon.svg",
+    "mine": "assets/mine.svg",
+    "flag": "assets/flag.svg",
+    "timer": "assets/timer.svg",
+    "player_1_icon": "assets/player_1_icon.svg",
+    "player_2_icon": "assets/player_2_icon.svg",
+    "trophy": "assets/trophy.svg",
+    "home_icon": "assets/home_icon.svg",
+    "lobby_icon": "assets/lobby_icon.svg",
+    "settings_icon": "assets/settings_icon.svg"
+  }
+}

@@ -1,0 +1,11 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  background-color: #bdbdbd;
+  border: 4px solid #7b7b7b;
+  width: fit-content;
+}
+
+.board-row {
+  display: flex;
+}

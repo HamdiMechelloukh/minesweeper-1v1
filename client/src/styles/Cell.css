@@ -1,0 +1,56 @@
+.cell {
+  width: 24px;
+  height: 24px;
+  background-color: #bdbdbd;
+  border: 2px solid #fff;
+  border-right-color: #7b7b7b;
+  border-bottom-color: #7b7b7b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: bold;
+  user-select: none;
+  cursor: pointer;
+}
+
+.cell.revealed {
+  background-color: #e0e0e0;
+  border: 1px solid #999;
+}
+
+.cell.exploded {
+  background-color: #ff0000;
+}
+
+.cell.questioned {
+  background-color: #bdbdbd;
+}
+
+.question-mark {
+  font-size: 16px;
+  font-weight: bold;
+  color: #7b00b4;
+}
+
+.cell.hidden:hover {
+  background-color: #d1d1d1;
+}
+
+.cell-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.number {
+  font-size: 16px;
+}
+
+.n1 { color: #0000ff; }
+.n2 { color: #008000; }
+.n3 { color: #ff0000; }
+.n4 { color: #000080; }
+.n5 { color: #800000; }
+.n6 { color: #008080; }
+.n7 { color: #000000; }
+.n8 { color: #808080; }

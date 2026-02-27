@@ -1,0 +1,71 @@
+import React from 'react';
+import { useGameWebSocket } from './hooks/useGameWebSocket';
+import HomePage from './pages/HomePage';
+import LobbyPage from './pages/LobbyPage';
+import GamePage from './pages/GamePage';
+import './styles/index.css';
+
+const App: React.FC = () => {
+  const {
+    gameState,
+    roomId,
+    players,
+    isHost,
+    error,
+    playerId,
+    isConnected,
+    createRoom,
+    joinRoom,
+    startGame,
+    revealCell,
+    flagCell,
+    chordCell
+  } = useGameWebSocket();
+
+  // Determine current view
+  let content;
+  
+  if (!roomId) {
+    content = (
+      <HomePage
+        onCreateRoom={createRoom}
+        onJoinRoom={joinRoom}
+        error={error}
+        isConnected={isConnected}
+      />
+    );
+  } else if (!gameState || gameState.status === 'waiting') {
+    content = (
+      <LobbyPage 
+        roomId={roomId} 
+        players={players} 
+        onStartGame={startGame} 
+        isHost={isHost} 
+        onExit={() => window.location.reload()} 
+      />
+    );
+  } else {
+    // In game
+    if (!playerId) {
+        content = <div>Connecting...</div>;
+    } else {
+        content = (
+            <GamePage
+                gameState={gameState}
+                playerId={playerId}
+                onReveal={revealCell}
+                onFlag={flagCell}
+                onChord={chordCell}
+            />
+        );
+    }
+  } 
+  
+  return (
+      <div className="app-root">
+          {content}
+      </div>
+  );
+};
+
+export default App;
