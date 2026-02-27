@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { generateBoard, revealCell, flagCell, checkWinCondition } from '../src/game/minesweeper';
+import { generateEmptyBoard, generateBoardWithSafeZone, revealCell, cycleFlag, chordReveal, checkWinCondition } from '../src/game/minesweeper';
 import { Cell } from '../src/types/game';
 
 describe('Minesweeper Game Logic', () => {
@@ -9,8 +9,8 @@ describe('Minesweeper Game Logic', () => {
     let board: Cell[][];
 
     beforeEach(() => {
-        // Use a fixed seed for deterministic board generation
-        board = generateBoard(123, rows, cols, mines);
+        // Safe zone at center (2,2) to guarantee reproducible non-mine area
+        board = generateBoardWithSafeZone(rows, cols, mines, 2, 2);
     });
 
     it('should generate a board with the correct dimensions and number of mines', () => {
@@ -21,91 +21,124 @@ describe('Minesweeper Game Logic', () => {
         expect(totalMines).to.equal(mines);
     });
 
-    it('should reveal a cell correctly', () => {
-        let revealedCell = board[0][0]; // Assuming it's not a mine for this test
-
-        // Find a non-mine cell to reveal
-        let r = 0, c = 0;
-        while(board[r][c].hasMine) {
-            c++;
-            if (c >= cols) {
-                c = 0;
-                r++;
-            }
-            if (r >= rows) { // Should not happen with typical mine counts
-                throw new Error("Could not find a non-mine cell to test revealing.");
+    it('should guarantee safe zone around first click', () => {
+        // No mine in the 3x3 around (2,2)
+        for (let r = 1; r <= 3; r++) {
+            for (let c = 1; c <= 3; c++) {
+                expect(board[r][c].hasMine, `cell (${r},${c}) should not be a mine`).to.be.false;
             }
         }
-        revealedCell = board[r][c];
+    });
 
-        const result = revealCell(board, revealedCell.row, revealedCell.col);
-        expect(result.updatedGrid[revealedCell.row][revealedCell.col].revealed).to.be.true;
+    it('should generate an empty board', () => {
+        const empty = generateEmptyBoard(3, 4);
+        expect(empty).to.have.length(3);
+        empty.forEach(row => {
+            expect(row).to.have.length(4);
+            row.forEach(cell => {
+                expect(cell.hasMine).to.be.false;
+                expect(cell.revealed).to.be.false;
+                expect(cell.flagged).to.be.false;
+            });
+        });
+    });
+
+    it('should reveal a non-mine cell correctly', () => {
+        // Center cell (2,2) is always safe
+        const result = revealCell(board, 2, 2);
+        expect(result.updatedGrid[2][2].revealed).to.be.true;
         expect(result.hitMine).to.be.false;
-        // Removed result.gameOver check as it's not part of the return type
-        expect(result.revealedCount).to.be.greaterThan(0); // Should reveal at least one cell
+        expect(result.revealedCount).to.be.greaterThan(0);
     });
 
     it('should set hitMine to true if a mine is revealed', () => {
-        // Find a mine cell to reveal
         let r = 0, c = 0;
-        while(!board[r][c].hasMine) {
+        while (!board[r][c].hasMine) {
             c++;
-            if (c >= cols) {
-                c = 0;
-                r++;
-            }
-            if (r >= rows) {
-                throw new Error("Could not find a mine cell to test revealing.");
-            }
+            if (c >= cols) { c = 0; r++; }
+            if (r >= rows) throw new Error('No mine cell found');
         }
-        const mineCell = board[r][c];
-
-        const result = revealCell(board, mineCell.row, mineCell.col);
-        expect(result.updatedGrid[mineCell.row][mineCell.col].revealed).to.be.true;
+        const result = revealCell(board, r, c);
+        expect(result.updatedGrid[r][c].revealed).to.be.true;
         expect(result.hitMine).to.be.true;
-        // Removed result.gameOver check as it's not part of the return type
-    });
-
-    it('should flag and unflag a cell', () => {
-        let cellToFlag = board[0][0]; // Assuming it's not a mine for this test
-
-        // Flag the cell
-        const { updatedGrid: flaggedGrid1, flagged: isFlagged1 } = flagCell(board, cellToFlag.row, cellToFlag.col);
-        expect(flaggedGrid1[cellToFlag.row][cellToFlag.col].flagged).to.be.true;
-        expect(isFlagged1).to.be.true;
-
-        // Unflag the cell
-        const { updatedGrid: flaggedGrid2, flagged: isFlagged2 } = flagCell(flaggedGrid1, cellToFlag.row, cellToFlag.col);
-        expect(flaggedGrid2[cellToFlag.row][cellToFlag.col].flagged).to.be.false;
-        expect(isFlagged2).to.be.false;
     });
 
     it('should not reveal a flagged cell', () => {
-        let cellToFlagAndReveal = board[0][0];
+        cycleFlag(board, 2, 2); // flag (2,2) — safe zone, so it's not a mine
+        const result = revealCell(board, 2, 2);
+        expect(result.updatedGrid[2][2].revealed).to.be.false;
+    });
 
-        const { updatedGrid: flaggedGrid, flagged: isFlagged } = flagCell(board, cellToFlagAndReveal.row, cellToFlagAndReveal.col);
-        expect(isFlagged).to.be.true;
+    it('should cycle: empty → flag → questioned → empty', () => {
+        const cell = board[0][0];
 
-        const result = revealCell(flaggedGrid, cellToFlagAndReveal.row, cellToFlagAndReveal.col);
-        expect(result.updatedGrid[cellToFlagAndReveal.row][cellToFlagAndReveal.col].revealed).to.be.false;
+        // empty → flag
+        const r1 = cycleFlag(board, cell.row, cell.col);
+        expect(r1.flagged).to.be.true;
+        expect(r1.questioned).to.be.false;
+        expect(board[cell.row][cell.col].flagged).to.be.true;
+
+        // flag → ?
+        const r2 = cycleFlag(board, cell.row, cell.col);
+        expect(r2.flagged).to.be.false;
+        expect(r2.questioned).to.be.true;
+        expect(board[cell.row][cell.col].questioned).to.be.true;
+
+        // ? → empty
+        const r3 = cycleFlag(board, cell.row, cell.col);
+        expect(r3.flagged).to.be.false;
+        expect(r3.questioned).to.be.false;
+        expect(board[cell.row][cell.col].flagged).to.be.false;
+        expect(board[cell.row][cell.col].questioned).to.be.false;
+    });
+
+    it('should not cycle a revealed cell', () => {
+        revealCell(board, 2, 2);
+        const r = cycleFlag(board, 2, 2);
+        expect(r.flagged).to.be.false;
+        expect(r.questioned).to.be.false;
+    });
+
+    it('should chord-reveal neighbors when flag count matches cell number', () => {
+        // Build a controlled 3x3 board: center is 1, one mine at (0,0)
+        const g = generateEmptyBoard(3, 3);
+        g[0][0].hasMine = true;
+        // Recalculate minesAround
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+                if (g[r][c].hasMine) continue;
+                let count = 0;
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (i === 0 && j === 0) continue;
+                        const nr = r + i; const nc = c + j;
+                        if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3 && g[nr][nc].hasMine) count++;
+                    }
+                }
+                g[r][c].minesAround = count;
+            }
+        }
+        // Reveal center
+        g[1][1].revealed = true;
+        // Flag the mine
+        g[0][0].flagged = true;
+        // Chord on center (minesAround=1, 1 flag adjacent)
+        const result = chordReveal(g, 1, 1);
+        expect(result.hitMine).to.be.false;
+        expect(result.revealedCells.length).to.be.greaterThan(0);
     });
 
     it('should check win condition correctly for a partial board', () => {
         const totalSafeCells = (rows * cols) - mines;
-        expect(checkWinCondition(board, totalSafeCells)).to.be.false; // Initially no win
+        expect(checkWinCondition(board, totalSafeCells)).to.be.false;
     });
 
-    it('should check win condition correctly when all safe cells are revealed', () => {
+    it('should check win condition when all safe cells are revealed', () => {
         const totalSafeCells = (rows * cols) - mines;
-        let testGrid: Cell[][] = JSON.parse(JSON.stringify(board)); // Deep copy
-
-        let revealedSafeCount = 0;
+        const testGrid: Cell[][] = JSON.parse(JSON.stringify(board));
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                if (!testGrid[r][c].hasMine) {
-                    testGrid[r][c].revealed = true;
-                    revealedSafeCount++;
-                }
+                if (!testGrid[r][c].hasMine) testGrid[r][c].revealed = true;
             }
         }
         expect(checkWinCondition(testGrid, totalSafeCells)).to.be.true;
@@ -113,9 +146,7 @@ describe('Minesweeper Game Logic', () => {
 
     it('should return false when only some safe cells are revealed', () => {
         const totalSafeCells = (rows * cols) - mines;
-        let testGrid: Cell[][] = JSON.parse(JSON.stringify(board));
-
-        // Reveal only half the safe cells
+        const testGrid: Cell[][] = JSON.parse(JSON.stringify(board));
         let revealed = 0;
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -125,7 +156,6 @@ describe('Minesweeper Game Logic', () => {
                 }
             }
         }
-
         expect(checkWinCondition(testGrid, totalSafeCells)).to.be.false;
     });
 });
