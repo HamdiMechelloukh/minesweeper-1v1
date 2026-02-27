@@ -13,7 +13,8 @@ export function useGameWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    gameSocket.connect('ws://localhost:3001');
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+    gameSocket.connect(wsUrl);
     const unsubOpen = gameSocket.onOpen(() => setIsConnected(true));
 
     const unsubscribe = gameSocket.onMessage((message: ServerMessage) => {
