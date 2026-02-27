@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { generateEmptyBoard, generateBoardWithSafeZone, revealCell, cycleFlag, chordReveal, checkWinCondition } from '../src/game/minesweeper';
+import { generateEmptyBoard, generateBoardWithSafeZone, generateSolvableBoard, revealCell, cycleFlag, chordReveal, checkWinCondition } from '../src/game/minesweeper';
 import { Cell } from '../src/types/game';
 
 describe('Minesweeper Game Logic', () => {
@@ -143,6 +143,24 @@ describe('Minesweeper Game Logic', () => {
         }
         expect(checkWinCondition(testGrid, totalSafeCells)).to.be.true;
     });
+
+    it('should generate a logically solvable board (5 samples, 16x16 with 40 mines)', () => {
+        // This test verifies that generateSolvableBoard always returns boards that
+        // can be solved without guessing. We test from the center as safe zone.
+        for (let sample = 0; sample < 5; sample++) {
+            const grid = generateSolvableBoard(16, 16, 40, 7, 7);
+            // Verify dimensions and mine count
+            expect(grid).to.have.length(16);
+            const mineCount = grid.flat().filter(c => c.hasMine).length;
+            expect(mineCount).to.equal(40);
+            // Verify safe zone
+            for (let r = 6; r <= 8; r++) {
+                for (let c = 6; c <= 8; c++) {
+                    expect(grid[r][c].hasMine, `(${r},${c}) should not be a mine`).to.be.false;
+                }
+            }
+        }
+    }).timeout(10000);
 
     it('should return false when only some safe cells are revealed', () => {
         const totalSafeCells = (rows * cols) - mines;

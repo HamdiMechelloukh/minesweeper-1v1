@@ -189,6 +189,156 @@ export function chordReveal(grid: Cell[][], row: number, col: number): { updated
   return { updatedGrid: grid, revealedCells: allRevealedCells, hitMine };
 }
 
+// ---------------------------------------------------------------------------
+// Logical solvability checker + solvable board generator
+// ---------------------------------------------------------------------------
+
+/**
+ * Simulates a constraint-propagation solver starting from (startRow, startCol).
+ * Returns true if the board can be fully solved without guessing.
+ *
+ * Techniques used:
+ *  1. Basic: if remaining mines == 0 → all unknown neighbors are safe
+ *            if remaining mines == |unknowns| → all are mines
+ *  2. Subset: if constraint A ⊆ constraint B, deduce info from B − A
+ */
+function isBoardSolvable(grid: Cell[][], startRow: number, startCol: number): boolean {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const key = (r: number, c: number) => r * cols + c; // numeric key for speed
+
+  const revealed = new Uint8Array(rows * cols); // 1 = revealed
+  const flagged  = new Uint8Array(rows * cols); // 1 = flagged as mine
+
+  // BFS reveal: reveal safe cells, expanding through 0-cells
+  function bfsReveal(startR: number, startC: number) {
+    const queue: number[] = [key(startR, startC)];
+    let head = 0;
+    while (head < queue.length) {
+      const k = queue[head++];
+      if (revealed[k]) continue;
+      const r = Math.floor(k / cols);
+      const c = k % cols;
+      if (grid[r][c].hasMine) continue;
+      revealed[k] = 1;
+      if (grid[r][c].minesAround === 0) {
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            if (i === 0 && j === 0) continue;
+            const nr = r + i, nc = c + j;
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+              const nk = key(nr, nc);
+              if (!revealed[nk] && !flagged[nk]) queue.push(nk);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bfsReveal(startRow, startCol);
+
+  // Constraint: a set of unknown-cell keys that contains exactly `mines` mines
+  interface Constraint { cells: number[]; mines: number; }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+
+    // Build constraint list from all revealed numbered cells
+    const constraints: Constraint[] = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const k = key(r, c);
+        if (!revealed[k] || grid[r][c].minesAround === 0) continue;
+        const unknown: number[] = [];
+        let flagCount = 0;
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            if (i === 0 && j === 0) continue;
+            const nr = r + i, nc = c + j;
+            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+            const nk = key(nr, nc);
+            if (flagged[nk]) flagCount++;
+            else if (!revealed[nk]) unknown.push(nk);
+          }
+        }
+        const remaining = grid[r][c].minesAround - flagCount;
+        if (unknown.length > 0) constraints.push({ cells: unknown, mines: remaining });
+      }
+    }
+
+    // Pass 1 — basic deductions
+    for (const { cells, mines } of constraints) {
+      if (mines === 0) {
+        for (const k of cells) {
+          if (!revealed[k]) { bfsReveal(Math.floor(k / cols), k % cols); changed = true; }
+        }
+      } else if (mines === cells.length) {
+        for (const k of cells) {
+          if (!flagged[k]) { flagged[k] = 1; changed = true; }
+        }
+      }
+    }
+
+    // Pass 2 — subset deductions (only if pass 1 made no progress)
+    if (!changed) {
+      for (let i = 0; i < constraints.length && !changed; i++) {
+        const a = constraints[i];
+        const setA = new Set(a.cells);
+        for (let j = 0; j < constraints.length && !changed; j++) {
+          if (i === j) continue;
+          const b = constraints[j];
+          // Check b ⊆ a
+          if (b.cells.length >= a.cells.length) continue;
+          if (!b.cells.every(k => setA.has(k))) continue;
+          const diff = a.cells.filter(k => !new Set(b.cells).has(k));
+          const diffMines = a.mines - b.mines;
+          if (diffMines < 0 || diffMines > diff.length) continue;
+          if (diffMines === 0) {
+            for (const k of diff) {
+              if (!revealed[k]) { bfsReveal(Math.floor(k / cols), k % cols); changed = true; }
+            }
+          } else if (diffMines === diff.length) {
+            for (const k of diff) {
+              if (!flagged[k]) { flagged[k] = 1; changed = true; }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Board is solvable only if every safe cell was reached
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!grid[r][c].hasMine && !revealed[key(r, c)]) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Generates a board that is always logically solvable from (safeRow, safeCol).
+ * Retries up to maxAttempts times; falls back to a random safe-zone board if
+ * no solvable board is found within the attempt limit (extremely rare).
+ */
+export function generateSolvableBoard(
+  rows: number, cols: number, mines: number,
+  safeRow: number, safeCol: number,
+  maxAttempts = 200
+): Cell[][] {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const grid = generateBoardWithSafeZone(rows, cols, mines, safeRow, safeCol);
+    if (isBoardSolvable(grid, safeRow, safeCol)) {
+      if (attempt > 0) console.log(`[Board] Solvable board found after ${attempt + 1} attempts`);
+      return grid;
+    }
+  }
+  console.warn(`[Board] Fallback after ${maxAttempts} attempts — using random board`);
+  return generateBoardWithSafeZone(rows, cols, mines, safeRow, safeCol);
+}
+
 export function checkWinCondition(grid: Cell[][], totalSafeCells: number): boolean {
   let revealedSafeCells = 0;
   for (let r = 0; r < grid.length; r++) {

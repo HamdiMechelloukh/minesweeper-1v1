@@ -1,5 +1,5 @@
 import { GameState, Player, Cell } from '../types/game';
-import { generateEmptyBoard, generateBoardWithSafeZone, revealCell, cycleFlag, chordReveal, checkWinCondition } from '../game/minesweeper';
+import { generateEmptyBoard, generateSolvableBoard, revealCell, cycleFlag, chordReveal, checkWinCondition } from '../game/minesweeper';
 
 class GameManager {
   private games: Map<string, GameState> = new Map();
@@ -73,7 +73,7 @@ class GameManager {
     if (action === 'reveal') {
       // Lazy board generation: generate mines on first reveal
       if (!player.boardReady) {
-        player.gridState = generateBoardWithSafeZone(game.boardRows, game.boardCols, game.totalMines, row, col);
+        player.gridState = generateSolvableBoard(game.boardRows, game.boardCols, game.totalMines, row, col);
         player.boardReady = true;
       }
 
