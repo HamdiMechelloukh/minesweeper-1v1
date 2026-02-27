@@ -84,10 +84,12 @@ class GameManager {
 
       if (hitMine) {
         player.gameOver = true;
+        player.completionTime = Date.now();
       } else {
         player.score += result.revealedCount;
         if (checkWinCondition(player.gridState, game.totalSafeCells)) {
           player.gameOver = true;
+          player.completionTime = Date.now();
         }
       }
     } else if (action === 'flag') {
@@ -104,10 +106,12 @@ class GameManager {
 
       if (hitMine) {
         player.gameOver = true;
+        player.completionTime = Date.now();
       } else {
         player.score += revealedCells.filter(c => !c.hasMine).length;
         if (checkWinCondition(player.gridState, game.totalSafeCells)) {
           player.gameOver = true;
+          player.completionTime = Date.now();
         }
       }
     }
@@ -134,13 +138,22 @@ class GameManager {
   }
 
   private determineWinner(game: GameState) {
-    const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
-    if (sortedPlayers[0].score === sortedPlayers[1].score) {
-      game.draw = true;
-      game.winnerId = null;
-    } else {
-      game.winnerId = sortedPlayers[0].id;
+    const [a, b] = game.players;
+    if (a.score !== b.score) {
+      // Higher score wins
+      game.winnerId = a.score > b.score ? a.id : b.id;
       game.draw = false;
+    } else {
+      // Equal score → fastest completion time wins
+      const aTime = a.completionTime ?? Infinity;
+      const bTime = b.completionTime ?? Infinity;
+      if (aTime === bTime) {
+        game.draw = true;
+        game.winnerId = null;
+      } else {
+        game.winnerId = aTime < bTime ? a.id : b.id;
+        game.draw = false;
+      }
     }
   }
 

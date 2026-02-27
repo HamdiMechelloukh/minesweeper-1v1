@@ -1,6 +1,7 @@
 .cell {
   width: 24px;
   height: 24px;
+  box-sizing: border-box;
   background-color: #bdbdbd;
   border: 2px solid #fff;
   border-right-color: #7b7b7b;

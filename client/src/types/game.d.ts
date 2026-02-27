@@ -16,6 +16,7 @@ export interface Player {
   gameOver: boolean;
   gridState: Cell[][];
   boardReady: boolean;
+  completionTime?: number;
 }
 
 export interface RoomState {
