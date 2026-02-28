@@ -1,8 +1,10 @@
 import { GameState, Player, Cell } from '../types/game';
 import { generateEmptyBoard, generateSolvableBoard, revealCell, cycleFlag, chordReveal, checkWinCondition } from '../game/minesweeper';
+import { upsertResult } from '../db/leaderboard';
 
 class GameManager {
   private games: Map<string, GameState> = new Map();
+  usernames: Map<string, string> = new Map();
 
   startGame(roomId: string, players: Player[]): GameState {
     const rows = 16;
@@ -140,11 +142,9 @@ class GameManager {
   private determineWinner(game: GameState) {
     const [a, b] = game.players;
     if (a.score !== b.score) {
-      // Higher score wins
       game.winnerId = a.score > b.score ? a.id : b.id;
       game.draw = false;
     } else {
-      // Equal score → fastest completion time wins
       const aTime = a.completionTime ?? Infinity;
       const bTime = b.completionTime ?? Infinity;
       if (aTime === bTime) {
@@ -154,6 +154,19 @@ class GameManager {
         game.winnerId = aTime < bTime ? a.id : b.id;
         game.draw = false;
       }
+    }
+
+    // Persist results to leaderboard (fire-and-forget)
+    for (const player of game.players) {
+      const username = this.usernames.get(player.id);
+      if (!username) continue;
+      const won = game.winnerId === player.id;
+      const timeMs = won && player.completionTime
+        ? player.completionTime - game.timerStart
+        : null;
+      upsertResult(username, won, timeMs).catch(err =>
+        console.error('leaderboard upsert failed:', err)
+      );
     }
   }
 

@@ -1,21 +1,37 @@
 .home-page {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  align-items: flex-start;
+  min-height: 100vh;
   background-color: #121212;
   color: #e0e0e0;
+  padding: 2rem 1rem;
+}
+
+.home-layout {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  max-width: 960px;
+  align-items: flex-start;
 }
 
 .home-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 2rem;
   background-color: #1e1e1e;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  flex: 0 0 320px;
+}
+
+.home-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .home-container h1 {
@@ -23,20 +39,47 @@
   align-items: center;
   gap: 1rem;
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.6rem;
 }
 
 .home-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   filter: invert(1);
+}
+
+.username-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.username-display span {
+  color: #03dac6;
+  font-weight: 600;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.btn-link:hover {
+  color: #e0e0e0;
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  align-items: stretch;
+  gap: 0.75rem;
   width: 100%;
 }
 
@@ -53,11 +96,40 @@
   width: 100%;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #018786;
 }
 
+.btn-primary:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  color: #bb86fc;
+  border: 1px solid #bb86fc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background-color 0.2s, color 0.2s;
+  width: 100%;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #bb86fc;
+  color: #000;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .separator {
+  text-align: center;
   color: #aaa;
   font-size: 0.9rem;
 }
@@ -98,6 +170,7 @@
 .connecting-msg {
   color: #aaa;
   font-size: 0.85rem;
+  text-align: center;
   animation: pulse 1.2s ease-in-out infinite;
 }
 
@@ -109,4 +182,131 @@
 .error-message {
   color: #cf6679;
   font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ── Leaderboard panel ─────────────────────────────────────────────────────── */
+
+.leaderboard-panel {
+  flex: 1;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+}
+
+.leaderboard-panel h2 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+  color: #03dac6;
+}
+
+.lb-empty {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.lb-table th,
+.lb-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #2c2c2c;
+}
+
+.lb-table th {
+  color: #888;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lb-table tr:last-child td {
+  border-bottom: none;
+}
+
+.lb-table tr.lb-self td {
+  color: #03dac6;
+  font-weight: 600;
+}
+
+/* ── Create room modal ─────────────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-card {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal-card h3 {
+  margin: 0 0 1.25rem;
+  font-size: 1.2rem;
+}
+
+.modal-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.modal-checkbox-label input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #03dac6;
+}
+
+.modal-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0.5rem 0 1.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.modal-actions .btn-secondary {
+  width: auto;
+  padding: 0.5rem 1rem;
+}
+
+.modal-actions .btn-primary {
+  width: auto;
+  padding: 0.5rem 1.25rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .home-layout {
+    flex-direction: column;
+  }
+
+  .home-container {
+    flex: none;
+    width: 100%;
+  }
 }

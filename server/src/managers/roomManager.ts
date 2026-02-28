@@ -1,4 +1,4 @@
-import { RoomState, Player } from '../types/game';
+import { RoomState, Player, PublicRoom } from '../types/game';
 
 class RoomManager {
   private rooms: Map<string, RoomState> = new Map();
@@ -16,13 +16,14 @@ class RoomManager {
     return result;
   }
 
-  createRoom(hostId: string): RoomState {
+  createRoom(hostId: string, isPublic = false): RoomState {
     const roomId = this.generateRoomCode();
     const newRoom: RoomState = {
       id: roomId,
       hostId,
       players: {},
-      status: 'waiting'
+      status: 'waiting',
+      isPublic
     };
     this.rooms.set(roomId, newRoom);
     return newRoom;
@@ -80,6 +81,23 @@ class RoomManager {
       }
     }
     return undefined;
+  }
+
+  getPublicRooms(usernames: Map<string, string>): PublicRoom[] {
+    const result: PublicRoom[] = [];
+    for (const room of this.rooms.values()) {
+      if (!room.isPublic) continue;
+      if (room.status !== 'waiting' && room.status !== 'in-game') continue;
+      const hostName = usernames.get(room.hostId) || 'Joueur';
+      const playerCount = Object.keys(room.players).length;
+      result.push({
+        id: room.id,
+        hostName,
+        playerCount,
+        status: room.status === 'in-game' ? 'playing' : 'waiting'
+      });
+    }
+    return result;
   }
 }
 

@@ -1,4 +1,4 @@
-import { GameState, Player } from './game';
+import { GameState, Player, PublicRoom } from './game';
 
 export interface RevealCellEvent {
   type: 'reveal_cell';
@@ -28,8 +28,29 @@ export interface StartGameEvent {
   type: 'start_game';
 }
 
+export interface SetUsernameEvent {
+  type: 'set_username';
+  payload: {
+    username: string;
+  };
+}
+
 export interface CreateRoomEvent {
   type: 'create_room';
+  payload?: {
+    isPublic?: boolean;
+  };
+}
+
+export interface ListRoomsEvent {
+  type: 'list_rooms';
+}
+
+export interface RoomsListEvent {
+  type: 'rooms_list';
+  payload: {
+    rooms: PublicRoom[];
+  };
 }
 
 export interface JoinRoomEvent {
@@ -96,5 +117,5 @@ export interface ErrorEvent {
   };
 }
 
-export type ClientMessage = RevealCellEvent | FlagCellEvent | ChordCellEvent | StartGameEvent | CreateRoomEvent | JoinRoomEvent;
-export type ServerMessage = GameStateEvent | OpponentUpdateEvent | GameOverEvent | RoomCreatedEvent | RoomJoinedEvent | ConnectedEvent | ErrorEvent;
+export type ClientMessage = RevealCellEvent | FlagCellEvent | ChordCellEvent | StartGameEvent | CreateRoomEvent | JoinRoomEvent | SetUsernameEvent | ListRoomsEvent;
+export type ServerMessage = GameStateEvent | OpponentUpdateEvent | GameOverEvent | RoomCreatedEvent | RoomJoinedEvent | ConnectedEvent | ErrorEvent | RoomsListEvent;

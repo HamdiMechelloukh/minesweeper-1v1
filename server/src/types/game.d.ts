@@ -19,12 +19,20 @@ export interface Player {
   completionTime?: number;
 }
 
+export interface PublicRoom {
+  id: string;
+  hostName: string;
+  playerCount: number;
+  status: 'waiting' | 'playing';
+}
+
 export interface RoomState {
   id: string;
   hostId: string;
   players: { [playerId: string]: Player };
   status: 'waiting' | 'ready' | 'in-game' | 'ended';
   gameSeed?: number;
+  isPublic: boolean;
 }
 
 export interface GameState {

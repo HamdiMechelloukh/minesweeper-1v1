@@ -1,0 +1,128 @@
+.public-rooms-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #121212;
+  color: #e0e0e0;
+  padding: 2rem 1rem;
+}
+
+.public-rooms-container {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 700px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.public-rooms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.public-rooms-header h2 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.btn-back {
+  background: none;
+  border: 1px solid #444;
+  color: #ccc;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+  background-color: #2c2c2c;
+}
+
+.btn-refresh {
+  background: none;
+  border: 1px solid #03dac6;
+  color: #03dac6;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-refresh:hover {
+  background-color: #03dac6;
+  color: #000;
+}
+
+.no-rooms {
+  text-align: center;
+  padding: 2rem 0;
+  color: #aaa;
+}
+
+.no-rooms-hint {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.rooms-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rooms-table th,
+.rooms-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #2c2c2c;
+}
+
+.rooms-table th {
+  color: #aaa;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rooms-table tr:last-child td {
+  border-bottom: none;
+}
+
+.room-status {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.room-status.waiting {
+  background-color: #1a3a2a;
+  color: #4caf89;
+}
+
+.room-status.playing {
+  background-color: #3a2a00;
+  color: #ffb74d;
+}
+
+.btn-join-room {
+  background-color: #03dac6;
+  color: #000;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.btn-join-room:hover {
+  background-color: #018786;
+}

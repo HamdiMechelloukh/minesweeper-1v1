@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { gameSocket } from '../services/websocket';
 import { GameState, Player } from '../types/game';
-import { ServerMessage } from '../types/websocket';
+import { ServerMessage, PublicRoom } from '../types/websocket';
 
 export function useGameWebSocket() {
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -11,17 +11,23 @@ export function useGameWebSocket() {
   const [error, setError] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [publicRooms, setPublicRooms] = useState<PublicRoom[]>([]);
 
   useEffect(() => {
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+    const wsUrl = (import.meta.env.VITE_WS_URL as string | undefined) || 'ws://localhost:3001';
     gameSocket.connect(wsUrl);
     const unsubOpen = gameSocket.onOpen(() => setIsConnected(true));
 
     const unsubscribe = gameSocket.onMessage((message: ServerMessage) => {
       switch (message.type) {
-        case 'connected':
+        case 'connected': {
           setPlayerId(message.payload.playerId);
+          const storedUsername = localStorage.getItem('ms_username');
+          if (storedUsername) {
+            gameSocket.sendMessage({ type: 'set_username', payload: { username: storedUsername } });
+          }
           break;
+        }
         case 'room_created':
           setRoomId(message.payload.roomId);
           setIsHost(true);
@@ -43,7 +49,7 @@ export function useGameWebSocket() {
             if (playerIndex !== -1) {
               const player = { ...newPlayers[playerIndex] };
               const newGrid = player.gridState.map(row => [...row]);
-              
+
               message.payload.revealedCells.forEach(cellUpdate => {
                 if (newGrid[cellUpdate.row] && newGrid[cellUpdate.row][cellUpdate.col]) {
                   newGrid[cellUpdate.row][cellUpdate.col] = {
@@ -55,7 +61,7 @@ export function useGameWebSocket() {
               });
 
               message.payload.flaggedCells.forEach(cellUpdate => {
-                 if (newGrid[cellUpdate.row] && newGrid[cellUpdate.row][cellUpdate.col]) {
+                if (newGrid[cellUpdate.row] && newGrid[cellUpdate.row][cellUpdate.col]) {
                   newGrid[cellUpdate.row][cellUpdate.col] = {
                     ...newGrid[cellUpdate.row][cellUpdate.col],
                     flagged: cellUpdate.flagged,
@@ -63,34 +69,33 @@ export function useGameWebSocket() {
                   };
                 }
               });
-              
+
               if (message.payload.hitMine) {
-                 player.gameOver = true;
+                player.gameOver = true;
               }
 
               player.gridState = newGrid;
               newPlayers[playerIndex] = player;
-              
-              return {
-                ...prevState,
-                players: newPlayers
-              };
+
+              return { ...prevState, players: newPlayers };
             }
             return prevState;
           });
           break;
         case 'game_over':
-           setGameState(prevState => {
-             if (!prevState) return null;
-             return {
-               ...prevState,
-               status: 'ended',
-               winnerId: message.payload.winnerId,
-               draw: message.payload.draw,
-               // we could store scores from payload if needed
-             };
-           });
-           break;
+          setGameState(prevState => {
+            if (!prevState) return null;
+            return {
+              ...prevState,
+              status: 'ended',
+              winnerId: message.payload.winnerId,
+              draw: message.payload.draw
+            };
+          });
+          break;
+        case 'rooms_list':
+          setPublicRooms(message.payload.rooms);
+          break;
         case 'error':
           setError(message.payload.message);
           break;
@@ -105,8 +110,8 @@ export function useGameWebSocket() {
     };
   }, []);
 
-  const createRoom = () => {
-    gameSocket.sendMessage({ type: 'create_room' });
+  const createRoom = (isPublic: boolean) => {
+    gameSocket.sendMessage({ type: 'create_room', payload: { isPublic } });
   };
 
   const joinRoom = (code: string) => {
@@ -129,6 +134,10 @@ export function useGameWebSocket() {
     gameSocket.sendMessage({ type: 'chord_cell', payload: { row, col } });
   };
 
+  const listRooms = () => {
+    gameSocket.sendMessage({ type: 'list_rooms' });
+  };
+
   return {
     roomId,
     gameState,
@@ -137,11 +146,13 @@ export function useGameWebSocket() {
     error,
     playerId,
     isConnected,
+    publicRooms,
     createRoom,
     joinRoom,
     startGame,
     revealCell,
     flagCell,
-    chordCell
+    chordCell,
+    listRooms
   };
 }
