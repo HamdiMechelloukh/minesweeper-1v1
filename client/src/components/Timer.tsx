@@ -6,16 +6,19 @@ interface TimerProps {
 }
 
 const Timer: React.FC<TimerProps> = ({ start, end }) => {
-  const [time, setTime] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
+    // Reset to 0 whenever the game starts (start changes)
+    setElapsed(0);
+
     if (end) {
-      setTime(Math.floor((end - start) / 1000));
+      // Game already ended — stop updating, keep last value
       return;
     }
 
     const interval = setInterval(() => {
-      setTime(Math.floor((Date.now() - start) / 1000));
+      setElapsed(prev => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -24,7 +27,7 @@ const Timer: React.FC<TimerProps> = ({ start, end }) => {
   return (
     <div className="timer">
       <img src="/assets/timer.svg" alt="Timer" style={{ width: 24, height: 24, marginRight: 8 }} />
-      <span>{time}s</span>
+      <span>{elapsed}s</span>
     </div>
   );
 };

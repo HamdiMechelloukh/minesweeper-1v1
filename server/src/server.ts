@@ -61,26 +61,60 @@ wss.on('connection', (ws: WebSocket) => {
 
     const room = findRoomByPlayer(playerId);
     if (room) {
-      roomManager.removePlayerFromRoom(room.id, playerId);
+      // Capture game reference BEFORE removing player from room
       const game = gameManager.getGameState(room.id);
+      roomManager.removePlayerFromRoom(room.id, playerId);
+
       if (game && game.status === 'playing') {
         const player = game.players.find(p => p.id === playerId);
         if (player) {
           player.gameOver = true;
           player.score = 0;
-          if (game.players.every(p => p.gameOver)) {
-            game.status = 'ended';
-            game.timerEnd = Date.now();
-          }
+
+          // End the game immediately — remaining player wins
+          game.status = 'ended';
+          game.timerEnd = Date.now();
+
           const otherPlayer = game.players.find(p => p.id !== playerId);
           if (otherPlayer) {
+            game.winnerId = otherPlayer.id;
+            game.draw = false;
+
             const otherWs = connections.get(otherPlayer.id);
             if (otherWs) {
               sendMessage(otherWs, { type: 'game_state', payload: game });
+              sendMessage(otherWs, {
+                type: 'game_over',
+                payload: {
+                  winnerId: game.winnerId,
+                  draw: false,
+                  scores: game.players.map(p => ({ playerId: p.id, score: p.score })),
+                  totalTime: (game.timerEnd - game.timerStart) / 1000
+                }
+              });
             }
           }
         }
+      } else {
+        // Player left the lobby — notify remaining player of updated room state
+        const updatedRoom = roomManager.getRoom(room.id);
+        if (updatedRoom) {
+          Object.values(updatedRoom.players).forEach(p => {
+            const pWs = connections.get(p.id);
+            if (pWs) {
+              sendMessage(pWs, {
+                type: 'room_joined',
+                payload: {
+                  roomId: updatedRoom.id,
+                  players: Object.values(updatedRoom.players),
+                  isHost: updatedRoom.hostId === p.id
+                }
+              });
+            }
+          });
+        }
       }
+
       broadcastRoomsList();
     }
   });

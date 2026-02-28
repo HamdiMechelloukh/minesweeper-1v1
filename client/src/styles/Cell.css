@@ -15,6 +15,26 @@
   cursor: pointer;
 }
 
+@media (max-width: 700px) {
+  .cell {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cell-icon {
+    width: 11px;
+    height: 11px;
+  }
+
+  .number {
+    font-size: 11px;
+  }
+
+  .question-mark {
+    font-size: 11px;
+  }
+}
+
 .cell.revealed {
   background-color: #e0e0e0;
   border: 1px solid #999;

@@ -16,6 +16,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   width: 400px;
+  max-width: calc(100vw - 2rem);
 }
 
 .room-code {
